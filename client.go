@@ -46,6 +46,7 @@ func (c *Client) GetAddress(postCode string, houseNumber int) (Address, error) {
 	if err != nil {
 		return Address{}, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -91,6 +92,7 @@ func (c *Client) GetCalendars(start, end time.Time, addressId string) (Calendars
 	if err != nil {
 		return calendars, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.client.Do(req)
 	if err != nil {
