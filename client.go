@@ -28,8 +28,26 @@ func NewClient(companyCode string) *Client {
 	return client
 }
 
+func (c *Client) request(method, path string, requestData []byte) ([]byte, error) {
+	url := fmt.Sprintf("%s%s", baseURL, path)
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(requestData))
+	if err != nil {
+		return []byte{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return []byte{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	return body, err
+}
+
 func (c *Client) GetAddress(postCode string, houseNumber int) (Address, error) {
-	url := fmt.Sprintf("%s/GetAddress", baseURL)
+	path := "/GetAddress"
 
 	requestData := struct {
 		CompanyCode string `json:"companyCode"`
@@ -42,19 +60,7 @@ func (c *Client) GetAddress(postCode string, houseNumber int) (Address, error) {
 		return Address{}, err
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
-	if err != nil {
-		return Address{}, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return Address{}, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
+	body, err := c.request(http.MethodPost, path, data)
 	if err != nil {
 		return Address{}, err
 	}
@@ -74,7 +80,7 @@ func (c *Client) GetAddress(postCode string, houseNumber int) (Address, error) {
 func (c *Client) GetCalendars(start, end time.Time, addressId string) (Calendars, error) {
 	calendars := Calendars{}
 
-	url := fmt.Sprintf("%s/GetCalendar", baseURL)
+	path := "/GetCalendar"
 
 	requestData := struct {
 		CompanyCode string `json:"companyCode"`
@@ -88,19 +94,7 @@ func (c *Client) GetCalendars(start, end time.Time, addressId string) (Calendars
 		return calendars, err
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
-	if err != nil {
-		return calendars, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return calendars, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
+	body, err := c.request(http.MethodPost, path, data)
 	if err != nil {
 		return calendars, err
 	}
