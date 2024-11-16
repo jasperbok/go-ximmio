@@ -102,3 +102,39 @@ func (c *Client) GetCalendars(start, end time.Time, addressId string) (Calendars
 	err = json.Unmarshal(body, &calendars)
 	return calendars, err
 }
+
+func (c *Client) GetWasteTypes() ([]WasteType, error) {
+	wasteTypes := []WasteType{}
+
+	path := "/GetConfigOption"
+
+	requestData := struct {
+		CompanyCode string `json:"companyCode"`
+		ConfigName  string `json:"configName"`
+	}{c.CompanyCode, "ALL"}
+
+	data, err := json.Marshal(requestData)
+	if err != nil {
+		return wasteTypes, err
+	}
+
+	body, err := c.request(http.MethodPost, path, data)
+	if err != nil {
+		return wasteTypes, err
+	}
+
+	responseStruct := struct {
+		DataList []configOption `json:"dataList"`
+	}{}
+
+	err = json.Unmarshal(body, &responseStruct)
+	if err != nil {
+		return wasteTypes, err
+	}
+
+	for _, config := range responseStruct.DataList {
+		wasteTypes = append(wasteTypes, config.toWasteType())
+	}
+
+	return wasteTypes, nil
+}
